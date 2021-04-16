@@ -46,7 +46,7 @@ class Category:
         Returns:
             bool: True if a withdrawal took place, False otherwise.
         """
-        if not self.check_funds():
+        if not self.check_funds(amount):
             return False
 
         self.ledger.append({"amount": -amount, "description": description})
@@ -79,7 +79,7 @@ class Category:
         Returns:
             bool: True if the transfer took place, False otherwise.
         """
-        if not self.check_funds():
+        if not self.check_funds(amount):
             return False
 
         # Withdraw from this Category and transfer to `category`
@@ -107,6 +107,35 @@ class Category:
             return False
         
         return True
+
+    def __str__(self):
+        """
+        String representation of this budget Category.
+        
+        The title line is 30 characters long with the budget Category name
+        in the middle of "*"s
+
+        Each item in the ledger is represented with a description and
+        the amount. The description is 23 characters max. The amount is
+        7 characters long max, has 2 decimal places and is right aligned.
+
+        The total amount in the budget Category is displayed last.
+        """
+        f = (30 - len(self.category)) // 2
+        t = "*" * f + self.category
+        title = t + "*" * (30 - len(t)) + "\n"
+
+        items = ""
+
+        for obj in self.ledger:
+            amount = "{:.2f}".format(obj["amount"])[:7]
+            description = obj["description"][:23]
+            items += description + amount.rjust(30 - len(description)) + "\n"
+
+        total = "Total: " + "{:.2f}".format(self.get_balance())
+
+
+        return title + items + total
 
 
 def create_spend_chart(categories):
