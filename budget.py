@@ -174,8 +174,13 @@ def create_spend_chart(categories):
                 withdrawn += obj["amount"]
         withdrawals.append(withdrawn)
     
-    # Withdrawals as a percentage, rounded down to the nearest 10.
-    percentages = [int(round(w / sum(withdrawals) * 100, -1)) for w in withdrawals]
+    # Withdrawals as a percentage.
+    percentages = []
+    for w in withdrawals:
+        p = w / sum(withdrawals) * 100
+        # Round down to the nearest 10
+        p = int(p - (p % 10))
+        percentages.append(p)
 
     for p in percentages:
         # A bar is made up of o's for every 10%.
@@ -190,7 +195,6 @@ def create_spend_chart(categories):
     for i in range(len_labels):
         line = ""
         for j in range(num_categories + 1):
-            #line += chart[j][i]
             line += bars[j][i]
         bar_chart.append(line)
 
