@@ -155,46 +155,43 @@ def create_spend_chart(categories):
     bar_chart = []
 
     # [1] Title with a given string.
-    title = "Percentage spent by category\n"
+    title = "Percentage spent by category"
     bar_chart.append(title)
     
     # [2] Labels from 0 - 100 in steps of 10.
+    # bars[] stores the top part of the chart (with labels and the percentages).
+    bars = []
     labels = [(str(p) + "| ").rjust(5) for p in range(0, 110, 10)]
     labels.reverse()
+    bars.append(labels)
 
-    # [3] Bars whose height is a percentage of the amount spent.
-    def percentage(ledger):
-        """
-        Takes a list and returns percentage as int rounded to nearest 10.
-        """
-        # sum() all amounts recorded as +float in ledger -> deposits
-        deposits = sum([obj["amount"] for obj in ledger if obj["amount"] > 0])
-
-        # sum() all amounts recorded as -float in ledger -> withdrawals
-        withdrawals = sum([obj["amount"] for obj in ledger if obj["amount"] < 0])
-
-        # Percentage is rounded down to the nearest 10
-        return int(round(withdrawals / deposits * 100, -1))
-
-    bars = []
+    # [3] Bars whose height is a percentage of the amount spent (withdrawals).
+    withdrawals = []
     for category in categories:
-        # Calculate the percentage spent.
-        p = percentage(category.ledger)
+        withdrawn = 0
+        for obj in category.ledger:
+            if obj["amount"] < 0:
+                withdrawn += obj["amount"]
+        withdrawals.append(withdrawn)
+    
+    # Withdrawals as a percentage, rounded down to the nearest 10.
+    percentages = [int(round(w / sum(withdrawals) * 100, -1)) for w in withdrawals]
 
-        # A bar is made up of "o" for every 10%.
+    for p in percentages:
+        # A bar is made up of o's for every 10%.
         bar = ["o  " for _ in range(0, p + 10, 10)]
-        # Match len() of all bars to that of labels (easier to work with!)
-        bar += "   " * (len(labels) - len(bar))
+        # Match len() of all bars to that of labels (easier to work with!).
+        bar += ["   "] * (len(labels) - len(bar))
         bar.reverse()
         bars.append(bar)
-    chart = labels + bars
 
     len_labels = len(labels)
     num_categories = len(categories)
     for i in range(len_labels):
         line = ""
         for j in range(num_categories + 1):
-            line += chart[j][i]
+            #line += chart[j][i]
+            line += bars[j][i]
         bar_chart.append(line)
 
     # [4] Horizontal line made up of dashes
@@ -204,7 +201,7 @@ def create_spend_chart(categories):
 
     # [5] Category names written vertically below the bars.
     names = [category.category for category in categories]
-    longest_name = len(max(names))
+    longest_name = len(max(names, key=len))
     names = [name + " " * (longest_name - len(name)) for name in names]
 
     for i in range(longest_name):
